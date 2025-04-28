@@ -1,0 +1,15 @@
+services:
+  income_db:
+    image: postgres:15.7
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: "postgres"
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
