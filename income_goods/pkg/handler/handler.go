@@ -14,9 +14,7 @@ type Handler struct {
 }
 
 func NewHandler(services *service.Service) *Handler {
-	return &Handler{
-		services: services,
-	}
+	return &Handler{services: services}
 }
 
 func (h *Handler) InitRoutes() *gin.Engine {
@@ -55,7 +53,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			return
 		}
 
-		userID, err := h.services.Parser.ParseToken(headerParts[1])
+		userID, role, username, err := h.services.Parser.ParseToken(headerParts[1])
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "the auth header is invalid"})
 			c.Abort()
@@ -63,15 +61,43 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		}
 
 		c.Set("user_id", strconv.Itoa(int(userID)))
+		c.Set("role", role)
+		c.Set("username", username)
 		c.Next()
 	})
 
-	// item
-	auth := router.Group("/income/goods")
+	// Middleware для проверки роли admin
+	adminOnly := func(c *gin.Context) {
+		role, _ := c.Get("role")
+		if role != "admin" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden: admin only"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+
+	// Middleware для проверки роли worker или admin
+	workerOrAdmin := func(c *gin.Context) {
+		role, _ := c.Get("role")
+		if role != "admin" && role != "worker" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden: worker or admin only"})
+			c.Abort()
+			return
+		}
+		c.Next()
+	}
+
+	api := router.Group("/income")
 	{
-		auth.POST("/get_by_goods_code", h.Get)
-		auth.POST("/create", h.Create)
-		auth.POST("/get_all_goods", h.GetAllGoods)
+		goods := api.Group("/goods")
+		{
+			goods.POST("/get_by_goods_code", workerOrAdmin, h.Get)
+			goods.POST("/create", workerOrAdmin, h.Create)
+			goods.POST("/get_all_goods", adminOnly, h.GetAllGoods)
+			goods.PUT("/update", adminOnly, h.Update)
+			goods.DELETE("/delete/:id", adminOnly, h.Delete)
+		}
 	}
 
 	return router

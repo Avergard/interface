@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )

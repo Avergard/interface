@@ -9,18 +9,26 @@ type IncomeService struct {
 	income repository.Income
 }
 
-func NewIncomeService(goods repository.Income) *IncomeService {
-	return &IncomeService{income: goods}
+func NewIncomeService(income repository.Income) *IncomeService {
+	return &IncomeService{income: income}
 }
 
-func (r *IncomeService) GetGoodByGoodsCode(goodsCode string) (models.Good, error) {
-	return r.income.GetGoodByGoodsCode(goodsCode)
+func (s *IncomeService) GetGoodByGoodsCode(goodsCode string) (models.Good, error) {
+	return s.income.GetGoodByGoodsCode(goodsCode)
 }
 
-func (r *IncomeService) Create(good models.Good) (models.Good, error) {
-	return r.income.Create(good)
+func (s *IncomeService) Create(good models.Good) (models.Good, error) {
+	return s.income.Create(good)
 }
 
-func (r *IncomeService) GetAllGoods(goodsCode string) ([]models.Good, error) {
-	return r.income.GetAllGoods(goodsCode)
+func (s *IncomeService) GetAllGoods(goodsCode string) ([]models.Good, error) {
+	return s.income.GetAllGoods(goodsCode)
+}
+
+func (s *IncomeService) UpdateGood(good models.Good) (models.Good, error) {
+	return s.income.UpdateGood(good)
+}
+
+func (s *IncomeService) DeleteGood(id int64) error {
+	return s.income.DeleteGood(id)
 }

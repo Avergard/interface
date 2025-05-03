@@ -107,6 +107,63 @@ export const getAllGoods = createAsyncThunk(
   }
 );
 
+export const updateGood = createAsyncThunk(
+  'goods/updateGood',
+  async (good: Good) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Требуется авторизация');
+      }
+
+      const response = await axios.put(
+        'http://localhost:8082/income/goods/update',
+        good,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      return response.data as Good;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.error || 'Ошибка при обновлении товара');
+      }
+      throw error;
+    }
+  }
+);
+
+export const deleteGood = createAsyncThunk(
+  'goods/deleteGood',
+  async (id: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Требуется авторизация');
+      }
+
+      await axios.delete(
+        `http://localhost:8082/income/goods/delete/${id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      return id;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.error || 'Ошибка при удалении товара');
+      }
+      throw error;
+    }
+  }
+);
+
 const goodsSlice = createSlice({
   name: 'goods',
   initialState,
@@ -152,6 +209,36 @@ const goodsSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Произошла ошибка при загрузке списка товаров';
         state.goodsList = [];
+      })
+      .addCase(updateGood.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateGood.fulfilled, (state, action) => {
+        state.loading = false;
+        // Обновляем товар в списке
+        state.goodsList = state.goodsList.map(good => 
+          good.id === action.payload.id ? action.payload : good
+        );
+        state.error = null;
+      })
+      .addCase(updateGood.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Произошла ошибка при обновлении товара';
+      })
+      .addCase(deleteGood.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteGood.fulfilled, (state, action) => {
+        state.loading = false;
+        // Удаляем товар из списка
+        state.goodsList = state.goodsList.filter(good => good.id !== action.payload);
+        state.error = null;
+      })
+      .addCase(deleteGood.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Произошла ошибка при удалении товара';
       });
   },
 });

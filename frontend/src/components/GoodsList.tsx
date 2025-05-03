@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Typography, Paper, CircularProgress, Alert, List, ListItem, Divider, TextField, InputAdornment, Button } from '@mui/material';
+import { Box, Typography, Paper, CircularProgress, Alert, List, ListItem, Divider, TextField, InputAdornment, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { getAllGoods } from '../store/slices/goodsSlice';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { getAllGoods, deleteGood } from '../store/slices/goodsSlice';
 import { RootState, AppDispatch } from '../store';
+import EditGoodForm from './EditGoodForm';
 
 interface Good {
   id: number;
@@ -18,34 +21,45 @@ const GoodsList: React.FC = () => {
   const { goodsList, loading, error } = useSelector((state: RootState) => state.goods);
   const [searchCode, setSearchCode] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedGood, setSelectedGood] = useState<Good | null>(null);
 
   useEffect(() => {
-    dispatch(getAllGoods(searchQuery));
-  }, [dispatch, searchQuery]);
+    dispatch(getAllGoods());
+  }, [dispatch]);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchCode(event.target.value);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchCode(e.target.value);
   };
 
   const handleSearch = () => {
     setSearchQuery(searchCode);
+    dispatch(getAllGoods(searchCode));
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const handleEditClick = (good: Good) => {
+    setSelectedGood(good);
+    setEditDialogOpen(true);
+  };
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        {error}
-      </Alert>
-    );
-  }
+  const handleDeleteClick = (good: Good) => {
+    setSelectedGood(good);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (selectedGood) {
+      await dispatch(deleteGood(selectedGood.id));
+      setDeleteDialogOpen(false);
+      setSelectedGood(null);
+    }
+  };
+
+  const filteredGoods = goodsList.filter(good =>
+    good.goods_code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    good.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Box sx={{ mt: 2 }}>
@@ -76,19 +90,38 @@ const GoodsList: React.FC = () => {
             Найти
           </Button>
         </Box>
-        {goodsList.length === 0 ? (
+        
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        ) : filteredGoods.length === 0 ? (
           <Typography color="text.secondary" align="center" sx={{ mt: 2 }}>
             {searchQuery ? 'Товары не найдены' : 'Список товаров пуст'}
           </Typography>
         ) : (
           <List>
-            {goodsList.map((good, index) => (
+            {filteredGoods.map((good, index) => (
               <React.Fragment key={good.id}>
                 <ListItem>
                   <Box sx={{ width: '100%' }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      {good.name}
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        {good.name}
+                      </Typography>
+                      <Box>
+                        <IconButton onClick={() => handleEditClick(good)} color="primary">
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleDeleteClick(good)} color="error">
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
                     <Typography variant="body1" color="primary" sx={{ fontWeight: 'bold', mb: 1 }}>
                       Код товара: {good.goods_code}
                     </Typography>
@@ -102,12 +135,42 @@ const GoodsList: React.FC = () => {
                     )}
                   </Box>
                 </ListItem>
-                {index < goodsList.length - 1 && <Divider />}
+                {index < filteredGoods.length - 1 && <Divider />}
               </React.Fragment>
             ))}
           </List>
         )}
       </Paper>
+
+      {selectedGood && (
+        <>
+          <EditGoodForm
+            good={selectedGood}
+            open={editDialogOpen}
+            onClose={() => {
+              setEditDialogOpen(false);
+              setSelectedGood(null);
+            }}
+          />
+          <Dialog
+            open={deleteDialogOpen}
+            onClose={() => setDeleteDialogOpen(false)}
+          >
+            <DialogTitle>Подтверждение удаления</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Вы уверены, что хотите удалить товар "{selectedGood.name}"?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setDeleteDialogOpen(false)}>Отмена</Button>
+              <Button onClick={handleDeleteConfirm} color="error" variant="contained">
+                Удалить
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      )}
     </Box>
   );
 };

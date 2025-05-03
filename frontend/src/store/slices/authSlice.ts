@@ -76,6 +76,11 @@ const authSlice = createSlice({
       })
       .addCase(signUp.fulfilled, (state) => {
         state.loading = false;
+        // После успешной регистрации автоматически входим
+        const { email, password } = state.user || {};
+        if (email && password) {
+          signIn({ email, password });
+        }
       })
       .addCase(signUp.rejected, (state, action) => {
         state.loading = false;

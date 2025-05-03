@@ -1,0 +1,1 @@
+ALTER TABLE income_goods DROP COLUMN category; 

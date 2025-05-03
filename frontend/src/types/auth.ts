@@ -1,11 +1,10 @@
 export interface User {
   id?: number;
   name: string;
-  nickname: string;
-  phone_number: string;
   email: string;
   password: string;
   age: number;
+  role?: 'worker' | 'admin';
 }
 
 export interface AuthRequest {

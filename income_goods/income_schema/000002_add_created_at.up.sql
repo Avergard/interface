@@ -1,0 +1,1 @@
+ALTER TABLE income_goods ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT now(); 

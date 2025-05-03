@@ -8,7 +8,7 @@ const Dashboard: React.FC = () => {
     <Container maxWidth="md">
       <Box sx={{ mt: 4, mb: 4 }}>
         <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Панель управления
+          Панель управления приёмкой товара
         </Typography>
         <AddGoodForm />
         <GoodsList />

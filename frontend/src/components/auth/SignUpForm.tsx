@@ -8,8 +8,6 @@ import { User } from '@/types/auth';
 
 interface ValidationErrors {
   name?: string;
-  nickname?: string;
-  phone_number?: string;
   email?: string;
   password?: string;
   age?: string;
@@ -22,41 +20,28 @@ const SignUpForm: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [formData, setFormData] = useState<User>({
     name: '',
-    nickname: '',
-    phone_number: '',
     email: '',
     password: '',
     age: 0,
+    role: 'worker',
   });
 
   const validateForm = (): boolean => {
     const errors: ValidationErrors = {};
-    
     if (formData.name.length < 1 || formData.name.length > 30) {
       errors.name = 'Имя должно быть от 1 до 30 символов';
     }
-    
-    if (formData.nickname.length < 1 || formData.nickname.length > 30) {
-      errors.nickname = 'Никнейм должен быть от 1 до 30 символов';
-    }
-    
-    if (formData.phone_number.length < 1 || formData.phone_number.length > 12) {
-      errors.phone_number = 'Номер телефона должен быть от 1 до 12 символов';
-    }
-    
     if (formData.password.length < 8 || formData.password.length > 50) {
       errors.password = 'Пароль должен быть от 8 до 50 символов';
     }
-    
     if (formData.age < 18 || formData.age > 70) {
       errors.age = 'Возраст должен быть от 18 до 70 лет';
     }
-
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -66,6 +51,16 @@ const SignUpForm: React.FC = () => {
       setValidationErrors(prev => ({
         ...prev,
         [name]: undefined
+      }));
+    }
+  };
+
+  const handleSelectChange = (e: React.ChangeEvent<{ name?: string; value: unknown }>) => {
+    const { name, value } = e.target;
+    if (name) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
       }));
     }
   };
@@ -127,30 +122,6 @@ const SignUpForm: React.FC = () => {
           
           <TextField
             fullWidth
-            label="Никнейм"
-            name="nickname"
-            value={formData.nickname}
-            onChange={handleChange}
-            margin="normal"
-            required
-            error={!!validationErrors.nickname}
-            helperText={validationErrors.nickname}
-          />
-          
-          <TextField
-            fullWidth
-            label="Номер телефона"
-            name="phone_number"
-            value={formData.phone_number}
-            onChange={handleChange}
-            margin="normal"
-            required
-            error={!!validationErrors.phone_number}
-            helperText={validationErrors.phone_number}
-          />
-          
-          <TextField
-            fullWidth
             label="Email"
             name="email"
             type="email"
@@ -188,6 +159,23 @@ const SignUpForm: React.FC = () => {
             helperText={validationErrors.age}
           />
           
+          <TextField
+            fullWidth
+            select
+            label="Роль"
+            name="role"
+            value={formData.role}
+            onChange={handleSelectChange}
+            margin="normal"
+            required
+            SelectProps={{
+              native: true,
+            }}
+          >
+            <option value="worker">Работник</option>
+            <option value="admin">Администратор</option>
+          </TextField>
+          
           <Button
             type="submit"
             fullWidth
@@ -195,7 +183,7 @@ const SignUpForm: React.FC = () => {
             sx={{ mt: 3, mb: 2 }}
             disabled={loading}
           >
-            {loading ? 'Загрузка...' : 'Зарегистрироваться'}
+            {loading ? 'Регистрация...' : 'Зарегистрироваться'}
           </Button>
         </Box>
       </Box>

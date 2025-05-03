@@ -24,17 +24,14 @@ func (s *IncomePostgres) GetGoodByGoodsCode(goodsCode string) (models.Good, erro
 	return item, err
 }
 
-func (s *IncomePostgres) Create(good models.Good) (models.Good, error) {
-	query := fmt.Sprintf("INSERT INTO %s (name, goods_code, count, description) VALUES ($1, $2, $3, $4) RETURNING id", goodsTable)
-	
-	var id int64
-	err := s.db.QueryRow(query, good.Name, good.GoodsCode, good.Count, good.Description).Scan(&id)
+func (r *IncomePostgres) Create(good models.Good) (models.Good, error) {
+	query := fmt.Sprintf("INSERT INTO %s (goods_code, name, count, description, category, created_by_user_id, created_by_username, created_by_role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", goodsTable)
+	var createdGood models.Good
+	err := r.db.Get(&createdGood, query, good.GoodsCode, good.Name, good.Count, good.Description, good.Category, good.CreatedByUserID, good.CreatedByUsername, good.CreatedByRole)
 	if err != nil {
 		return models.Good{}, err
 	}
-	
-	good.ID = id
-	return good, nil
+	return createdGood, nil
 }
 
 func (s *IncomePostgres) GetAllGoods(goodsCode string) ([]models.Good, error) {
@@ -49,4 +46,22 @@ func (s *IncomePostgres) GetAllGoods(goodsCode string) ([]models.Good, error) {
 
 	err := s.db.Select(&items, query)
 	return items, err
+}
+
+func (s *IncomePostgres) UpdateGood(good models.Good) (models.Good, error) {
+	query := fmt.Sprintf("UPDATE %s SET name=$1, goods_code=$2, count=$3, description=$4, category=$5 WHERE id=$6 RETURNING *", goodsTable)
+
+	var updatedGood models.Good
+	err := s.db.Get(&updatedGood, query, good.Name, good.GoodsCode, good.Count, good.Description, good.Category, good.ID)
+	if err != nil {
+		return models.Good{}, err
+	}
+
+	return updatedGood, nil
+}
+
+func (s *IncomePostgres) DeleteGood(id int64) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", goodsTable)
+	_, err := s.db.Exec(query, id)
+	return err
 }

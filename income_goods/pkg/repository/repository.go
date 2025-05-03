@@ -10,6 +10,8 @@ type Income interface {
 	GetGoodByGoodsCode(goodsCode string) (models.Good, error)
 	Create(good models.Good) (models.Good, error)
 	GetAllGoods(goodsCode string) ([]models.Good, error)
+	UpdateGood(good models.Good) (models.Good, error)
+	DeleteGood(id int64) error
 }
 
 type Repository struct {

@@ -9,10 +9,7 @@ const AuthChoice: React.FC = () => {
     <Container maxWidth="sm">
       <Box sx={{ mt: 8, mb: 4 }}>
         <Typography variant="h4" component="h1" align="center" gutterBottom>
-          Добро пожаловать
-        </Typography>
-        <Typography variant="body1" align="center" sx={{ mb: 4 }}>
-          Выберите действие:
+          Приёмка товара на склад
         </Typography>
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6}>
@@ -35,9 +32,6 @@ const AuthChoice: React.FC = () => {
               <Typography variant="h6" gutterBottom>
                 Вход
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Войдите в свой аккаунт
-              </Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -59,9 +53,6 @@ const AuthChoice: React.FC = () => {
             >
               <Typography variant="h6" gutterBottom>
                 Регистрация
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Создайте новый аккаунт
               </Typography>
             </Paper>
           </Grid>
